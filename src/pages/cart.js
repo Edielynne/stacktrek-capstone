@@ -33,6 +33,9 @@ const products = [
   // More products...
 ]
 
+
+
+
 const Cart = (isOpen) =>{
   const [cartData, setCart] = useState({
     id : '',
@@ -42,46 +45,146 @@ const Cart = (isOpen) =>{
     quantity :'',
     image: ''
   })
-  const [carts,setCarts] = useState([]) 
-  useEffect(() => {
-    let CartisMounted = true
-    const getCart = async () =>{
+
+  const [total, setTotal] = useState(0)
+  const [counter, setCounter] = useState(0)
+  const remove =async (product_id) =>{  
+    try {
+      console.log(product_id)
+      setCounter(value => value + 1)
+     
+      await Axios.delete(`/api/remove` , {headers: { 
+      'Content-Type': 'application/json',  
+      },
+      data: {},
+      params:{
+          ID: localStorage.getItem("userID"),
+          PROD_ID: product_id
+      }})
+      if(carts.length == 0 ){
+        setCarts([])
+        console.log("SSS")
+      }
+    }
+    catch(err){
+      console.log(err)
+  
+    }
+  }
+
+  const subtract =async (product_id,quantity) =>{ 
+   
+    if(quantity-1 == 0 ){
+      console.log(quantity)
+      remove(product_id)
+    } 
+   
+    else{
       try {
-          await Axios.get(`/api/usercart` , {headers: { 
-          'Content-Type': 'application/json',  
-          },
-          data: {},
-          params:{
-              ID: localStorage.getItem("userID")
-          }})
-          .then(res => {
-            console.log(res.data)
-            res.data.map((e)=> {
-              setCart({
-                id :  e.PRODUCT_ID,
-                color : e.color,
-                price: e.price,
-                name: e.product_name,
-                quantity :e.QUANTITY,
-                image: "https://cdn.dribbble.com/users/1008900/screenshots/16168560/swimsuit_mockup_1600_1200_4x.jpg", //info.image, I use temporary link
-              })
-              setCarts(res.data)
-              console.log("Set")
-            })
-          })
-         
+        console.log(product_id)
+        setCounter(value => value + 1)
+       
+        await Axios.put(`/api/subtractcart` , {headers: { 
+        'Content-Type': 'application/json',  
+        },
+        data: {},
+        params:{
+            ID: localStorage.getItem("userID"),
+            PROD_ID: product_id,
+            QUANTITY: quantity -1
+        }})
+        if(carts.length == 0 ){
+          setCarts([])
+          console.log("Subtract")
+        }
       }
       catch(err){
         console.log(err)
+    
       }
     }
+   
+  }
+
+
+  const add =async (product_id,quantity) =>{ 
+    console.log("qsqweq ",quantity)
+   
+      try {
+        
+        setCounter(value => value + 1)
+       
+        await Axios.put(`/api/addcart` , {headers: { 
+        'Content-Type': 'application/json',  
+        },
+        data: {},
+        params:{
+            ID: localStorage.getItem("userID"),
+            PROD_ID: product_id,
+            QUANTITY: quantity +1
+        }})
+      }
+      catch(err){
+        console.log(err)
     
+      }
+    
+   
+  }
+
+  const getCart = async () =>{
+   
+    try {
+        await Axios.get(`/api/usercart` , {headers: { 
+        'Content-Type': 'application/json',  
+        },
+        data: {},
+        params:{
+            ID: localStorage.getItem("userID")
+        }})
+        .then(res => {
+          console.log(res.data.length)
+          if(res.data.length == 0){
+             
+            setCarts([])
+            console.log("carts here")
+            console.log(carts)
+          
+        }
+          res.data.map((e)=> {
+            setCart ({
+              id :  e.PRODUCT_ID,
+              color : e.color,
+              price: e.price,
+              name: e.product_name,
+              quantity :e.QUANTITY,
+              image: "https://cdn.dribbble.com/users/1008900/screenshots/16168560/swimsuit_mockup_1600_1200_4x.jpg", //info.image, I use temporary link
+            })
+            
+            
+            setCarts(res.data)
+            
+            console.log("Set")
+          
+          })
+        })
+       
+    }
+    catch(err){
+      console.log(err)
+    }
+  }
+
+  
+  const [carts,setCarts] = useState([]) 
+  let CartisMounted = true
+  useEffect(() => {
     getCart()
+    
     return ()=>{
       CartisMounted = false
     }
- 
-  }, [])
+  }, [counter,CartisMounted])
   
   const [open, setOpen] = useState(true)
   const CartState = () =>{
@@ -124,30 +227,38 @@ const Cart = (isOpen) =>{
                 leaveFrom="translate-x-0"
                 leaveTo="translate-x-full"
               >
+                
                 <Dialog.Panel className="pointer-events-auto w-screen max-w-md">
                   <div className="flex h-full flex-col overflow-y-scroll bg-white shadow-xl">
                     <div className="flex-1 overflow-y-auto py-6 px-4 sm:px-6">
                       <div className="flex items-start justify-between">
                         <Dialog.Title className="text-lg font-medium text-gray-900">Shopping cart</Dialog.Title>
+                        
                         <div className="ml-3 flex h-7 items-center">
                           <button
                             type="button"
                             className="-m-2 p-2 text-gray-400 hover:text-gray-500"
                             onClick={CartState}
                           >
+                           
                             <span className="sr-only">Close panel</span>
                             <XMarkIcon className="h-6 w-6" aria-hidden="true" />
                           </button>
                         </div>
                       </div>
-
-                      <div className="mt-8">
+                     
+                      <div className= { carts.length <1 ? "mt-8 text-center content-center  justify-center" : "mt-8 text-start" }  >
+                      {carts.length <1 && <div className="items-center text-center justify-center inline-block align-middle " >
+                          <h1 className="text-lg  font-medium text-center text-gray-900"> Your Cart is empty  </h1>
+                            <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">ADD TO CART NOW! </button></div>
+                            }
                         <div className="flow-root">
+                        
+
                           <ul role="list" className="-my-6 divide-y divide-gray-200">
-                            {carts.length == 0 && <div className="inline-block align-middle" >Your Cart is empty <br>
-                            </br>
-                            <button className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full">ADD TO CART NOW! </button></div>}
-                            {carts.map((product) => (
+                          
+                            {carts.length >= 1 && carts.map((product) => (
+                              
                               <li key={product.ID} className="flex py-6">
                                 <div className="h-24 w-24 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
                                   <img
@@ -157,28 +268,58 @@ const Cart = (isOpen) =>{
                                     className="h-full w-full object-cover object-center"
                                   />
                                 </div>
-
+                                
                                 <div className="ml-4 flex flex-1 flex-col">
                                   <div>
+                                    
                                     <div className="flex justify-between text-base font-medium text-gray-900">
                                       <h3>
                                         <a href={product.href}>{product.product_name}</a>
                                       </h3>
                                       <p className="ml-4">{product.price}</p>
                                     </div>
-                                    <p className="mt-1 text-sm text-gray-500">{product.color}</p>
+                                    <p className="mt-1 text-sm text-gray-500">{product.color} </p>
+                                    
                                   </div>
+                                 
                                   <div className="flex flex-1 items-end justify-between text-sm">
-                                    <p className="text-gray-500">Qty {product.QUANTITY}</p>
 
-                                    <div className="flex">
+                                    
+                                 
+                                  <div className="flex space-x-2 ">
+
+                                      <button
+                                        type="button"
+                                        class="text-white bg-gradient-to-r from-pink-400 via-pink-500 to-pink-600 hover:bg-gradient-to-br focus:ring-3 focus:outline-none focus:ring-pink-300 dark:focus:ring-pink-800 font-medium rounded-lg text-sm px-1 py-1 text-center "
+                                        onClick={()=>subtract(product.ID, product.QUANTITY )}
+                                      >
+                                        <svg class="fill-current text-white w-3" viewBox="0 0 448 512">
+                                        <path d="M416 208H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h384c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z"/>
+                                        </svg>
+                                      </button>
+                                      <p className="pl-5 pr-5 border   text-sm text-gray-500">{product.QUANTITY}</p>
+                                      <button
+                                        type="button"
+                                        class="text-white bg-gradient-to-r from-pink-400 via-pink-500 to-pink-600 hover:bg-gradient-to-br focus:ring-3 focus:outline-none focus:ring-pink-300 dark:focus:ring-pink-800 font-medium rounded-lg text-sm px-1 py-1 text-center "
+                                        onClick={()=>add(product.ID, product.QUANTITY )}
+                                      > 
+                                      <svg class="fill-current text-white w-3" viewBox="0 0 448 512">
+                                      <path d="M416 208H272V64c0-17.67-14.33-32-32-32h-32c-17.67 0-32 14.33-32 32v144H32c-17.67 0-32 14.33-32 32v32c0 17.67 14.33 32 32 32h144v144c0 17.67 14.33 32 32 32h32c17.67 0 32-14.33 32-32V304h144c17.67 0 32-14.33 32-32v-32c0-17.67-14.33-32-32-32z"/>
+                                      </svg>
+                                      </button>
+                                    </div>
+                                  
+                                  <div className="flex">
                                       <button
                                         type="button"
                                         className="font-medium text-pink-600 hover:text-indigo-500"
+                                        onClick={()=>remove(product.ID)}
                                       >
                                         Remove
                                       </button>
+                                      
                                     </div>
+                                  
                                   </div>
                                 </div>
                               </li>
@@ -191,7 +332,7 @@ const Cart = (isOpen) =>{
                     <div className="border-t border-gray-200 py-6 px-4 sm:px-6">
                       <div className="flex justify-between text-base font-medium text-gray-900">
                         <p>Subtotal</p>
-                        <p>$262.00</p>
+                        <p>${total}</p>
                       </div>
                       <p className="mt-0.5 text-sm text-gray-500">Shipping and taxes calculated at checkout.</p>
                       <div className="mt-6">
