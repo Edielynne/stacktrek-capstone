@@ -1,8 +1,8 @@
 StackTreck Capstone
 
-Swin and waves e-commerce website
+Hi this is my Capstone Project, Swin and waves e-commerce website
 
-this contains
+This contains:
 - Home page
 - Profile page
 - Product page
@@ -10,5 +10,20 @@ this contains
 - Carts
 - Likes
 
+Features:
+-Login system for customer
+-List of products
+-User profile that can be updated
+
+
+Technologies used:
+-Reactjs
+-Nodejs
+-Javascript
+-Tailwind
+-PostgreSql
+
+
 for the backend 
 - This includes all the node files 
+
