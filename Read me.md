@@ -17,7 +17,7 @@ Features:
 
 
 Technologies used:
--Reactjs
+-Reactjss
 -Nodejs
 -Javascript
 -Tailwind
